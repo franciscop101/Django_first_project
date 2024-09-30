@@ -1,0 +1,45 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block content %}
+<h1>{{ post.title }}</h1>
+<p>{{ post.content }}</p>
+
+{% if post.image %}
+    <img src="{{ post.image.url }}" alt="{{ post.title }}">
+{% endif %}
+
+{% if request.user == post.author or request.user.is_superuser %}
+    <a href="{% url 'edit_post' pk=post.pk %}">Edit Post</a>
+    <a href="{% url 'delete_post' pk=post.pk %}">Delete Post</a>
+{% endif %}
+
+<hr>
+
+<!-- Exibir comentários -->
+<h3>Comentários</h3>
+<ul>
+    {% for comment in comments %}
+        <li>
+            <strong>{{ comment.user.username }}</strong>: {{ comment.content }} <br>
+            <small>{{ comment.created_at }}</small>
+        </li>
+    {% empty %}
+        <li>Ainda não há comentários.</li>
+    {% endfor %}
+</ul>
+
+<hr>
+
+<h3>Adiciona o teu comentário</h3>
+{% if user.is_authenticated %}
+    <form method="post">
+        {% csrf_token %}
+        {{ comment_form.as_p }}
+        <button type="submit">Submeter Comentário</button>
+    </form>
+{% else %}
+    <p>Faz <a href="{% url 'login' %}">login</a> para adicionar um comentário.</p>
+{% endif %}
+{% endblock %}
