@@ -3,43 +3,85 @@
 {% block title %}{{ post.title }}{% endblock %}
 
 {% block content %}
-<h1>{{ post.title }}</h1>
-<p>{{ post.content }}</p>
 
-{% if post.image %}
-    <img src="{{ post.image.url }}" alt="{{ post.title }}">
-{% endif %}
+<style>
+    .long-text {
+        word-wrap: break-word;
+        word-break: break-word;
+    }
+    .comment-box {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    .comment-box small {
+        display: block;
+        color: #6c757d;
+    }
+    .post-content {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+</style>
 
-{% if request.user == post.author or request.user.is_superuser %}
-    <a href="{% url 'edit_post' pk=post.pk %}">Edit Post</a>
-    <a href="{% url 'delete_post' pk=post.pk %}">Delete Post</a>
-{% endif %}
+<div class="container my-5">
+    <!-- Título do Post -->
+    <div class="post-content">
+        <h1 class="mb-4">{{ post.title }}</h1>
 
-<hr>
+        <!-- Conteúdo do Post com quebra automática de palavras longas -->
+        <p class="long-text">{{ post.content }}</p>
 
-<!-- Exibir comentários -->
-<h3>Comentários</h3>
-<ul>
-    {% for comment in comments %}
-        <li>
-            <strong>{{ comment.user.username }}</strong>: {{ comment.content }} <br>
-            <small>{{ comment.created_at }}</small>
-        </li>
-    {% empty %}
-        <li>Ainda não há comentários.</li>
-    {% endfor %}
-</ul>
+        <!-- Imagem do Post, se houver -->
+        {% if post.image %}
+            <div class="text-center my-4">
+                <img src="{{ post.image.url }}" alt="{{ post.title }}" class="img-fluid rounded">
+            </div>
+        {% endif %}
 
-<hr>
+        <!-- Botões de Edição e Exclusão para o Autor ou Superusuário -->
+        {% if request.user == post.author or request.user.is_superuser %}
+            <div class="mt-4">
+                <a href="{% url 'edit_post' pk=post.pk %}" class="btn btn-warning">Edit Post</a>
+                <a href="{% url 'delete_post' pk=post.pk %}" class="btn btn-danger">Delete Post</a>
+            </div>
+        {% endif %}
+    </div>
 
-<h3>Adiciona o teu comentário</h3>
-{% if user.is_authenticated %}
-    <form method="post">
-        {% csrf_token %}
-        {{ comment_form.as_p }}
-        <button type="submit">Submeter Comentário</button>
-    </form>
-{% else %}
-    <p>Faz <a href="{% url 'login' %}">login</a> para adicionar um comentário.</p>
-{% endif %}
+    <hr class="my-5">
+
+    <!-- Seção de Comentários -->
+    <h3 class="mb-4">Comments</h3>
+    <ul class="list-unstyled">
+        {% for comment in comments %}
+            <li class="comment-box">
+                <strong>{{ comment.user.username }}</strong>
+                <p>{{ comment.content }}</p>
+                <small>Posted on {{ comment.created_at }}</small>
+            </li>
+        {% empty %}
+            <li>No comments yet.</li>
+        {% endfor %}
+    </ul>
+
+    <hr class="my-5">
+
+    <!-- Adicionar Comentário -->
+    <h3 class="mb-4">Add your comment</h3>
+    {% if user.is_authenticated %}
+        <form method="post" class="mb-4">
+            {% csrf_token %}
+            <div class="mb-3">
+                {{ comment_form.as_p }}
+            </div>
+            <button type="submit" class="btn btn-primary">Submit Comment</button>
+        </form>
+    {% else %}
+        <p>Please <a href="{% url 'login' %}">login</a> to add a comment.</p>
+    {% endif %}
+</div>
+
 {% endblock %}

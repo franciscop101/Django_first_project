@@ -32,6 +32,8 @@ class Post(models.Model):
     def __str__(self):
         return self.title
 
+    def short_content(self):
+        return self.content[:100] + '...' if len(self.content) > 100 else self.content
 
 class Comment(models.Model):
     post = models.ForeignKey(Post, related_name='comments', on_delete=models.CASCADE)
@@ -41,3 +43,12 @@ class Comment(models.Model):
 
     def __str__(self):
         return f'Comment by {self.user.username} on {self.post.title}'
+    
+class Feedback(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Feedback from {self.name}'

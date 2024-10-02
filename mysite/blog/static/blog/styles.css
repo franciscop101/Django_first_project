@@ -1,17 +1,12 @@
-/* Reset básico */
+
+    /* Reset básico */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-body {
-    font-family: 'Arial', sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 0;
-    line-height: 1.6;
-}
+
 
 /* Header e Navbar */
 header {
@@ -118,3 +113,4 @@ footer {
     width: 100%;
     bottom: 0;
 }
+

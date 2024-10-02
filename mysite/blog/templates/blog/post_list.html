@@ -3,24 +3,47 @@
 {% block title %}Post List{% endblock %}
 
 {% block content %}
+<div class="container">
+    <h1>Post List</h1>
 
-<div class="container"></div>
-    <h1>Lista de Posts</h1>
-
-    <form method="GET" action="{% url 'post_list' %}" class="form-inline mb-4">
-        <input type="text" name="q" placeholder="Pesquisar por título" value="{{ query }}" class="form-control mr-2">
-        <button type="submit" class="btn btn-primary">Pesquisar</button>
+    <!-- Formulário de busca com ID para identificação -->
+    <form method="GET" action="{% url 'post_list' %}" class="form-inline mb-4" id="search-form">
+        <input type="text" name="q" id="search-input" placeholder="Search by title" value="{{ query }}" class="form-control mr-2">
     </form>
 
-    <ul >
+    <!-- Container onde os resultados serão carregados dinamicamente -->
+    <ul id="post-list">
         {% for post in posts %}
-        <li >
+        <li>
             <a href="{% url 'post_detail' pk=post.pk %}">{{ post.title }}</a>
         </li>
         {% empty %}
-        <li class="list-group-item">Nenhum post encontrado.</li>
+        <li class="list-group-item">No posts found.</li>
         {% endfor %}
     </ul>
 </div>
+
+<!-- Script para pesquisa AJAX -->
+<script>
+    document.getElementById('search-input').addEventListener('input', function() {
+        const query = this.value;
+        const xhr = new XMLHttpRequest();
+        const url = "{% url 'post_list' %}?q=" + encodeURIComponent(query);  // Construir a URL com o parâmetro de busca
+
+        xhr.open('GET', url, true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');  // Define que é uma requisição AJAX
+
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(xhr.responseText, 'text/html');
+                const newPosts = doc.getElementById('post-list').innerHTML;  // Obtém o conteúdo da nova lista de posts
+                document.getElementById('post-list').innerHTML = newPosts;   // Substitui o conteúdo atual
+            }
+        };
+
+        xhr.send();
+    });
+</script>
 
 {% endblock %}
