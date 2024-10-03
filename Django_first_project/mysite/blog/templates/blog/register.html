@@ -1,0 +1,23 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Create Account{% endblock %}
+
+{% block content %}
+<h1>Create your account</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Register</button>
+</form>
+<p>
+<p>Already have an account? <a href="{% url 'login' %}">Login here</a>.</p>
+
+{% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+{% endblock %}
