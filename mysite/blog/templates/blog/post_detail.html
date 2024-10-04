@@ -54,18 +54,82 @@
     <hr class="my-5">
 
     <!-- Seção de Comentários -->
-    <h3 class="mb-4">Comments</h3>
-    <ul class="list-unstyled">
-        {% for comment in comments %}
-            <li class="comment-box">
-                <strong>{{ comment.user.username }}</strong>
+<!-- Seção de Comentários -->
+<h3 class="mb-4">Comentários</h3>
+<ul class="list-unstyled">
+    {% for comment in comments %}
+        <li class="comment-box" id="comment-{{ comment.id }}">
+            <strong>{{ comment.user.username }}</strong>
+
+            <!-- Exibe o texto do comentário -->
+            <div id="comment-text-{{ comment.id }}">
                 <p>{{ comment.content }}</p>
-                <small>Posted on {{ comment.created_at }}</small>
-            </li>
-        {% empty %}
-            <li>No comments yet.</li>
-        {% endfor %}
-    </ul>
+                <small>Postado em {{ comment.created_at }}</small>
+            </div>
+
+            <!-- Formulário de edição escondido inicialmente -->
+            <form id="edit-form-{{ comment.id }}" style="display: none;" method="post" action="{% url 'edit_comment' comment.id %}">
+                {% csrf_token %}
+                <textarea name="content" class="form-control">{{ comment.content }}</textarea>
+                <button type="submit" class="btn btn-primary btn-sm mt-2">Salvar</button>
+                <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="cancelEdit({{ comment.id }})">Cancelar</button>
+            </form>
+
+            {% if request.user == comment.user or request.user.is_superuser %}
+                <div class="mt-2">
+                    <button class="btn btn-sm btn-warning" onclick="editComment({{ comment.id }})">Editar</button>
+                    <a href="{% url 'delete_comment' comment.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja apagar este comentário?');">Apagar</a>
+                </div>
+            {% endif %}
+        </li>
+    {% empty %}
+        <li>Nenhum comentário ainda.</li>
+    {% endfor %}
+</ul>
+
+<!-- JavaScript para AJAX e manipulação do formulário de edição -->
+<script>
+    function editComment(commentId) {
+        document.getElementById('comment-text-' + commentId).style.display = 'none';
+        document.getElementById('edit-form-' + commentId).style.display = 'block';
+    }
+
+    function cancelEdit(commentId) {
+        document.getElementById('comment-text-' + commentId).style.display = 'block';
+        document.getElementById('edit-form-' + commentId).style.display = 'none';
+    }
+
+    document.querySelectorAll('form[id^="edit-form"]').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();  // Impede o comportamento padrão de envio do formulário
+
+            const commentId = this.id.split('-')[2];
+            const content = this.querySelector('textarea').value;
+            const csrfToken = this.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    'content': content
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('comment-text-' + commentId).querySelector('p').innerText = content;
+                    cancelEdit(commentId);  // Fecha o formulário de edição
+                } else {
+                    alert('Ocorreu um erro ao salvar o comentário.');
+                }
+            });
+        });
+    });
+</script>
+
 
     <hr class="my-5">
 

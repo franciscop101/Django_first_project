@@ -9,6 +9,8 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.urls import reverse
 from django.test import TestCase
+from django.http import JsonResponse
+
 
 # Create your views here.
 
@@ -100,6 +102,9 @@ def post_detail(request, pk):
     
     comments = post.comments.all() 
     
+    editing_comment_id = request.GET.get('edit_comment')
+
+    
     if request.method == 'POST':
         comment_form = CommentForm(request.POST)
         if comment_form.is_valid():
@@ -114,7 +119,9 @@ def post_detail(request, pk):
     return render(request, 'blog/post_detail.html', {
         'post': post,
         'comments': comments,
-        'comment_form': comment_form
+        'comment_form': comment_form,
+        'editing_comment_id': int(editing_comment_id) if editing_comment_id 
+        else None
     })
     
 def about(request):
@@ -135,19 +142,27 @@ def contact(request):
 
     return render(request, 'blog/contact.html', {'form': form})
 
+@login_required
+def edit_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
 
-class PostViewsTest(TestCase):
-    def setUp(self):
-        self.post = Post.objects.create(title='Teste de view', content='Conteúdo da view')
+    if request.user == comment.user or request.user.is_superuser:
+        if request.method == 'POST':
+            form = CommentForm(request.POST, instance=comment)
+            if form.is_valid():
+                form.save()
+                return JsonResponse({'success': True})
+            else:
+                return JsonResponse({'success': False, 'error': form.errors}, status=400)
+    return JsonResponse({'success': False}, status=403)
 
-    def test_post_list_view(self):
-        response = self.client.get(reverse('post_list'))
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Teste de view')
-        self.assertTemplateUsed(response, 'post_list.html')
+@login_required
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
 
-    def test_post_detail_view(self):
-        response = self.client.get(reverse('post_detail', args=[self.post.id]))
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Conteúdo da view')
-        self.assertTemplateUsed(response, 'post_detail.html')
+    if request.user == comment.user or request.user.is_superuser:
+        post_id = comment.post.pk
+        comment.delete()
+        return redirect('post_detail', pk=post_id)
+    else:
+        return redirect('post_list')

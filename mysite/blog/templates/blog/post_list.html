@@ -1,49 +1,66 @@
 {% extends 'blog/base.html' %}
 
-{% block title %}Post List{% endblock %}
+{% block title %}Home{% endblock %}
 
 {% block content %}
+
+<style>
+    .long-text {
+        word-wrap: break-word;
+        word-break: break-word;
+    }
+</style>
+    
 <div class="container">
     <h1>Post List</h1>
 
-    <!-- Formulário de busca com ID para identificação -->
+    <!-- Search Form -->
     <form method="GET" action="{% url 'post_list' %}" class="form-inline mb-4" id="search-form">
         <input type="text" name="q" id="search-input" placeholder="Search by title" value="{{ query }}" class="form-control mr-2">
     </form>
 
-    <!-- Container onde os resultados serão carregados dinamicamente -->
-    <ul id="post-list">
-        {% for post in posts %}
-        <li>
-            <a href="{% url 'post_detail' pk=post.pk %}">{{ post.title }}</a>
-        </li>
-        {% empty %}
-        <li class="list-group-item">No posts found.</li>
-        {% endfor %}
-    </ul>
+    <!-- Feed with Dynamic Post List -->
+    <div class="feed">
+        <ul id="post-list">
+            {% for post in posts %}
+            <div class="post-box">
+                <h5>{{ post.title }}</h5>
+                <p><strong>By {{ post.author.username }}</strong> - {{ post.created_at|date:"d M Y, H:i" }}</p>
+                <p class="long-text">{{ post.content|truncatewords:30 }}</p>
+                {% if post.image %}
+                    <img src="{{ post.image.url }}" alt="{{ post.title }}">
+                {% endif %}
+                <div class="d-flex justify-content-between mt-2">
+                    <a href="{% url 'post_detail' post.pk %}" class="btn btn-outline-primary btn-sm">View</a>
+                </div>
+            </div>
+            {% empty %}
+            <li class="list-group-item">No posts found.</li>
+            {% endfor %}
+        </ul>
+    </div>
 </div>
 
-<!-- Script para pesquisa AJAX -->
+<!-- AJAX Search Script -->
 <script>
     document.getElementById('search-input').addEventListener('input', function() {
         const query = this.value;
         const xhr = new XMLHttpRequest();
-        const url = "{% url 'post_list' %}?q=" + encodeURIComponent(query);  // Construir a URL com o parâmetro de busca
+        const url = "{% url 'post_list' %}?q=" + encodeURIComponent(query);
 
         xhr.open('GET', url, true);
-        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');  // Define que é uma requisição AJAX
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');  // Define as an AJAX request
 
         xhr.onload = function() {
             if (xhr.status === 200) {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(xhr.responseText, 'text/html');
-                const newPosts = doc.getElementById('post-list').innerHTML;  // Obtém o conteúdo da nova lista de posts
-                document.getElementById('post-list').innerHTML = newPosts;   // Substitui o conteúdo atual
+                const newPosts = doc.getElementById('post-list').innerHTML;
+                document.getElementById('post-list').innerHTML = newPosts;
             }
         };
 
         xhr.send();
     });
 </script>
-
 {% endblock %}
