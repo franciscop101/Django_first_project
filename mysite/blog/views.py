@@ -1,15 +1,16 @@
-from .models import Post, Comment
-from django.shortcuts import render, redirect, get_object_or_404
-from .forms import PostForm, UserRegisterForm, CommentForm, ContactForm
+from .forms import PostForm, UserRegisterForm, CommentForm, ContactForm, ProfileUpdateForm, ProfilePictureForm
+from .models import Post, Comment, Profile
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.contrib.auth.models import Group
 from django.contrib.auth.forms import UserCreationForm
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.urls import reverse
 from django.test import TestCase
 from django.http import JsonResponse
+from django.contrib.auth.forms import UserChangeForm
 
 
 # Create your views here.
@@ -100,7 +101,7 @@ def delete_post(request, pk):
 def post_detail(request, pk):
     post = get_object_or_404(Post, pk=pk)
     
-    comments = post.comments.all() 
+    comments = post.comments.all()  # type: ignore
     
     editing_comment_id = request.GET.get('edit_comment')
 
@@ -166,3 +167,28 @@ def delete_comment(request, comment_id):
         return redirect('post_detail', pk=post_id)
     else:
         return redirect('post_list')
+
+
+
+
+@login_required
+def profile_view(request):
+    user_profile, created = Profile.objects.get_or_create(user=request.user)  # Garante que o perfil existe
+    if request.method == 'POST':
+        user_form = ProfileUpdateForm(request.POST, instance=request.user)
+        picture_form = ProfilePictureForm(request.POST, request.FILES, instance=user_profile)
+        if user_form.is_valid() and picture_form.is_valid():
+            user_form.save()
+            picture_form.save()
+            messages.success(request, 'Your profile has been updated successfully!')
+            return redirect('profile')
+    else:
+        user_form = ProfileUpdateForm(instance=request.user)
+        picture_form = ProfilePictureForm(instance=user_profile)
+
+    context = {
+        'user_form': user_form,
+        'picture_form': picture_form
+    }
+    return render(request, 'blog/profile.html', context)
+

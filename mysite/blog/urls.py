@@ -17,4 +17,5 @@ urlpatterns = [
     path('contact/', views.contact, name='contact'),
     path('comment/edit/<int:comment_id>/', edit_comment, name='edit_comment'),
     path('comment/delete/<int:comment_id>/', delete_comment, name='delete_comment'),
+    path('profile/', views.profile_view, name='profile'),
 ]

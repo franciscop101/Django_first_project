@@ -1,0 +1,40 @@
+<!-- blog/templates/blog/profile.html -->
+{% extends 'blog/base.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Profile</h1>
+
+    <!-- Exibe a imagem do perfil -->
+    <div class="profile-picture mb-3 text-center">
+        <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle" width="150" height="150">
+    </div>
+
+    <!-- Exibe as informações do perfil em formato read-only -->
+    <div class="profile-info mb-4">
+        <h3>User Information</h3>
+        <p><strong>Username:</strong> {{ user.username }}</p>
+        <p><strong>First Name:</strong> {{ user.first_name }}</p>
+        <p><strong>Last Name:</strong> {{ user.last_name }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+    </div>
+
+    <hr>
+
+    <!-- Formulário para editar as informações do perfil -->
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset class="form-group">
+            <legend>Update Your Info</legend>
+            {{ user_form.as_p }}
+        </fieldset>
+        <fieldset class="form-group">
+            <legend>Update Profile Picture</legend>
+            {{ picture_form.as_p }}
+        </fieldset>
+        <button type="submit" class="btn btn-primary">Update Profile</button>
+    </form>
+</div>
+{% endblock %}

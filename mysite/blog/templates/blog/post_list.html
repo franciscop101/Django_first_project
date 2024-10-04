@@ -12,21 +12,25 @@
 </style>
     
 <div class="container">
-    <h1>Post List</h1>
-
+    
     <!-- Search Form -->
     <form method="GET" action="{% url 'post_list' %}" class="form-inline mb-4" id="search-form">
         <input type="text" name="q" id="search-input" placeholder="Search by title" value="{{ query }}" class="form-control mr-2">
     </form>
-
     <!-- Feed with Dynamic Post List -->
     <div class="feed">
         <ul id="post-list">
+            <h1>Post List</h1>
+           
             {% for post in posts %}
             <div class="post-box">
                 <h5>{{ post.title }}</h5>
                 <p><strong>By {{ post.author.username }}</strong> - {{ post.created_at|date:"d M Y, H:i" }}</p>
-                <p class="long-text">{{ post.content|truncatewords:30 }}</p>
+                <p class="long-text">
+                    {{ post.content|truncatewords:50 }}
+                    <span class="hidden-text" style="display: none;">{{ post.content | slice:99999999999999999   }}</span>
+                    <a href="#" class="show-more">Ver mais</a>
+                </p>
                 {% if post.image %}
                     <img src="{{ post.image.url }}" alt="{{ post.title }}">
                 {% endif %}
@@ -49,7 +53,7 @@
         const url = "{% url 'post_list' %}?q=" + encodeURIComponent(query);
 
         xhr.open('GET', url, true);
-        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');  // Define as an AJAX request
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');  // Define como uma requisição AJAX
 
         xhr.onload = function() {
             if (xhr.status === 200) {
@@ -61,6 +65,15 @@
         };
 
         xhr.send();
+    });
+
+    document.querySelectorAll('.show-more').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = this.previousElementSibling;
+            target.style.display = 'inline';  // Mostra o restante do texto
+            this.style.display = 'none';  // Esconde o link "Ver mais"
+        });
     });
 </script>
 {% endblock %}

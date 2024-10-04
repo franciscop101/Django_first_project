@@ -41,9 +41,10 @@
                                
                                 <li class="nav-item"><a class="nav-link text-white" href="{% url 'contact' %}">Contact</a></li> 
                                 <li class="nav-item"><a class="nav-link text-white" href="{% url 'logout' %}">Logout</a></li>
-                                <li class="nav-item">
-                                    <span class="nav-link text-white"><strong>{{ user.username }}</strong></span>
-                                </li>
+                                <a class="nav-link text-white" href="{% url 'profile' %}">
+                                    <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="rounded-circle" width="30" height="30">
+                                    {{ user.username }}
+                                </a>
                             {% else %}
                                 <li class="nav-item"><a class="nav-link text-white" href="{% url 'login' %}">Login</a></li>
                                 <li class="nav-item"><a class="nav-link text-white" href="{% url 'register' %}">Register</a></li>
